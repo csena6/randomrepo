@@ -1,0 +1,110 @@
+//N_MEC: 81377
+
+#1
+match(actor:Person)-[acted:ACTED_IN]->(movie:Movie)<-[dir:DIRECTED]-(director:Person)
+where actor = director
+return actor.name , movie.title
+
+#2
+match(movie:Movie)<-[acted:ACTED_IN]-(actors:Person)
+where movie.released>2005
+return movie.title, Collect(actors.name) as actors
+
+#3
+match(n1)-[r]-(n2)
+where n1<>n2
+with n1,n2, count(r) as rel_count
+where rel_count>1
+return n1,n2
+
+#4
+match(reviewer1:Person)-[:REVIEWED]->(movie:Movie)<-[:REVIEWED]-(reviewer2:Person)
+where ID(reviewer1)>ID(reviewer2)
+return reviewer1.name, reviewer2.name, movie.title
+
+#5
+match(actor1:Person)-[:ACTED_IN]->(movie:Movie)<-[:ACTED_IN]-(actor2:Person)
+where id(actor1)>id(actor2)
+with actor1, actor2, count(movie) as movie_count
+where movie_count>1
+return actor1.name, actor2.name
+
+
+#6
+match(actors:Person)-[:ACTED_IN]->(movie:Movie)
+where movie.title="Apollo 13"
+with round(avg(movie.released- actors.born)) as avg_age
+return avg_age
+
+#7
+match(actors:Person)-[:ACTED_IN]->(movie:Movie)
+with movie, avg(movie.released- actors.born) as avg_age
+return movie.title, round(avg_age,2)
+order by avg_age desc
+limit 10
+
+#8
+match(actor)-[:ACTED_IN]->(movie:Movie)
+with movie , avg(movie.released-actor.born) as avg_age
+order by avg_age
+limit 1
+
+match(a:Person)-[]->(movie)
+return movie, a
+
+#9
+match
+(Keanu:Person{name:"Keanu Reeves"}),
+(Demi:Person{name:"Demi Moore"}),
+p=shortestPath((Keanu)-[*]-(Demi))
+return p
+
+#10
+match
+(Keanu:Person{name:"Keanu Reeves"}),
+(Tom:Person{name:"Tom Cruise"}),
+p=shortestPath((Keanu)-[*]-(Tom))
+return length(p) as path_size
+
+#11
+MATCH p=shortestPath(
+  (jim:Person)-[*]-(kevin:Person)
+)
+WHERE jim.name CONTAINS 'Jim' and kevin.name CONTAINS 'Kevin'
+return  length(p) as path_length, jim.name as Jims, kevin.name as Kevins
+
+#12
+#13
+MATCH p=shortestPath(
+  (kevin:Person{name:"Kevin Bacon"})-[*]-(person2:Person)
+)
+where id(kevin)>id(person2)
+return  length(p) as path_length, person2.name as furthest_from_kevin
+order by path_length desc
+limit 1
+
+#14
+MATCH p=shortestPath(
+  (person1:Person)-[*]-(person2:Person)
+)
+where person1<>person2
+return  length(p) as path_length, person1.name, person2.name
+order by path_length desc
+limit 1
+
+#15
+MATCH p=shortestPath(
+  (person1:Person)-[*]-(person2:Person)
+)
+where id(person1)>ID(person2)
+return  count(*) ,length(p) as path_length
+order by path_length
+
+#16
+MATCH p=shortestPath(
+  (person1:Person)-[:ACTED_IN*]-(person2:Person)
+)
+where id(person1) > id(person2)
+return  avg(length(p)) as path_length, person1.name
+order by path_length
+limit 10

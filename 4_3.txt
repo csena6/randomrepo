@@ -1,0 +1,61 @@
+//NMEC:81377
+#a
+//Entidades:
+//User - snv_id, name, org
+//Project - project_name
+//
+//Relação
+//(:User)-[:WORKS_ON]->(:Project) - role:<String>, num<Integer>
+
+#b
+
+LOAD CSV WITH HEADERS
+FROM "file:///git_selection.csv" AS Row
+MERGE (user:User {svn_id: Row.svn_id})
+SET user.name=Row.real_name, user.org=Row.organization
+MERGE (project:Project {project_name: Row.project_name})
+with Row
+MATCH (user:User {svn_id: Row.svn_id}),(project:Project {project_name:Row.project_name})
+CREATE (user)-[:WORKED_ON {num: Row.num, role: Row.role_on_project}]->(project)
+
+#c
+#1
+match(n:User) return n.svn_id,n.org,n.name
+
+#2
+match(n:User) return n.name
+
+#3
+match(n:Project)<-[r:WORKED_ON]-(p:User)
+with n, count(r) as counter
+where counter >0
+return n.project_name
+
+#4
+match(u:User)-[r:WORKED_ON] - ()
+with u, count(r) as proj_counter
+return u.name, proj_counter
+
+#5
+match(u:User)-[r:WORKED_ON] - ()
+with u, count(r) as proj_counter
+return u.name, proj_counter
+order by proj_counter desc
+
+#6
+match(n:Project)<-[r:WORKED_ON]-(p:User)
+with n, count(r) as workers_counter
+return n.project_name, workers_counter
+
+#7
+match(n:Project)<-[r:WORKED_ON]-(p:User)
+with n, count(r.role="Committer") as workers_counter
+return distinct n.project_name, workers_counter
+
+#8
+match(atm:User{svn_id:"atm"})-[:WORKED_ON]->(proj:Project)<-[:WORKED_ON]-(user:User)
+return atm.name, user.name, proj.project_name
+
+#9
+match(atm:User{svn_id:"atm"})-[:WORKED_ON{role:"PMC"}]->(proj:Project)<-[:WORKED_ON{role:"Committer"}]-(user:User)
+return user.name
