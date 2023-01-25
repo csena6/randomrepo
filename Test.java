@@ -2,6 +2,10 @@ import org.neo4j.driver.v1.*;
 import java.util.Random;
 
 public class Neo4jExample {
+    String name = generateRandomName();
+    String query = "CREATE (c:Company {id: " + id + ", name: \"" + name + "\"})";
+    session.run(query);
+    
     public static void main(String[] args) {
         // Connect to Neo4j database
         Driver driver = GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "password"));
